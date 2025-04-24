@@ -1,0 +1,329 @@
+
+ <!DOCTYPE html>
+ <html lang="en">
+ <head>
+     <meta charset="UTF-8">
+     <title>Prediction Result</title>
+ 
+     <!-- ****** START: Login Guard Script ****** -->
+     <script>
+         const storageKey = 'healthAssistantUser'; // Define the key used for login status
+         // Check localStorage BEFORE rendering sensitive content
+         if (!localStorage.getItem(storageKey)) {
+             // If not logged in, redirect to the login page (assuming '/login' route)
+             window.location.href = "/login"; // Adjust if your login route is different
+         }
+         // If logged in, execution continues and the rest of the page loads.
+     </script>
+     <!-- ****** END: Login Guard Script ****** -->
+ 
+     <!-- Added Bootstrap CSS -->
+     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+     <!-- Link your existing style.css -->
+     <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+     <style>
+         /* Optional: Add some spacing below the navbar */
+         body { padding-top: 70px; /* Adjust based on navbar height */ }
+         .navbar { position: fixed; top: 0; width: 100%; z-index: 1030; } /* Fixed navbar */
+         .result-section { margin-bottom: 1.5rem; }
+         .result-section h4 {
+             border-bottom: 1px solid #dee2e6;
+             padding-bottom: 0.5rem;
+             margin-bottom: 1rem;
+             color: #0d6efd; /* Bootstrap primary blue */
+         }
+         .list-group-item { background-color: #f8f9fa; } /* Light background for list items */
+         .predicted-disease-header {
+             background-color: #cfe2ff; /* Bootstrap info background */
+             border-color: #b6d4fe;
+             color: #055160; /* Bootstrap info text color */
+             padding: 1rem;
+             margin-bottom: 1.5rem;
+             border-radius: .375rem; /* Standard Bootstrap border radius */
+         }
+          .disclaimer {
+             font-size: 0.875em;
+             color: #6c757d; /* Bootstrap secondary text color */
+             border: 1px dashed #ffc107; /* Bootstrap warning border */
+             padding: 0.5rem;
+             margin-top: 0.5rem;
+             background-color: #fff3cd; /* Bootstrap warning background */
+          }
+          /* Ensure modal backdrop is visible */
+          .modal-backdrop {
+              opacity: 0.5 !important;
+          }
+     </style>
+ </head>
+ <body>
+     <!-- Navbar with Welcome Message and Logout Button -->
+     <nav class="navbar navbar-expand-lg navbar-light bg-light fixed-top shadow-sm">
+       <div class="container-fluid">
+         <a class="navbar-brand" href="{{ url_for('index') }}"><b>Personalised Health Assistant</b></a>
+         <div class="d-flex align-items-center ms-auto">
+             <span id="welcomeMessage" class="navbar-text me-3"></span>
+             <button id="logoutButton" class="btn btn-sm btn-outline-secondary">Logout</button>
+         </div>
+       </div>
+     </nav>
+ 
+     <!-- Main Content Area -->
+     <div class="container py-4"> <!-- Adjusted padding -->
+         <div class="card p-4 shadow-lg"> <!-- Wrapped content in a card -->
+             <h2 class="text-center mb-4">Prediction Result</h2>
+ 
+              <!-- Handle Error Case -->
+             {% if error %}
+              <div class="alert alert-danger" role="alert">
+                  <h4 class="alert-heading">Error Occurred!</h4>
+                  <p>{{ error }}</p>
+                  <hr>
+                  <p class="mb-0">Please try selecting symptoms again.</p>
+                  <a href="{{ url_for('index') }}" class="btn btn-primary mt-3">Try Again</a>
+              </div>
+ 
+             <!-- Handle Success Case -->
+             {% elif disease %}
+                 <div class="predicted-disease-header">
+                     <p class="mb-1">Based on your symptoms:</p>
+                     <ul class="list-inline mb-2">
+                         {% for symptom in selected_symptoms %}
+                            <li class="list-inline-item"><span class="badge bg-secondary">{{ symptom.replace('_', ' ').title() }}</span></li>
+                         {% endfor %}
+                     </ul>
+                      <p class="mb-1">The potential condition identified is:</p>
+                     <h3 class="alert-heading mt-1 mb-0">{{ disease.title() }}</h3>
+                 </div>
+ 
+                 <!-- Sections: Description, Precautions, Medications, Specialist -->
+                 <div class="result-section"><h4>Description</h4><p>{{ description }}</p></div>
+                 {% if precautions %}<div class="result-section"><h4>Recommended Precautions</h4><ul class="list-group list-group-flush">{% for p in precautions %}<li class="list-group-item">{{ p.strip().title() }}</li>{% endfor %}</ul></div>{% endif %}
+                 {% if medications %}<div class="result-section"><h4>Possible Medications <span class="text-muted small">(Consult a Doctor!)</span></h4><div class="disclaimer alert alert-warning p-2"><strong>Disclaimer:</strong> NOT medical advice. Consult a healthcare provider.</div><ul class="list-group list-group-flush mt-2">{% for m in medications %}{% if m.strip() %}<li class="list-group-item">{{ m.strip().title() }}</li>{% endif %}{% endfor %}</ul></div>{% else %}<div class="result-section"><h4>Possible Medications</h4><p>No specific medication data found.</p><div class="disclaimer alert alert-warning p-2"><strong>Disclaimer:</strong> Consult a healthcare provider.</div></div>{% endif %}
+                 <div class="result-section"><h4>Consult Specialist</h4><p>It is recommended to consult a <strong>{{ specialist.title() }}</strong>.</p></div>
+                  <!-- End Sections -->
+ 
+                  <!-- Action Buttons -->
+                  <div class="text-center mt-4">
+                     <a href="{{ url_for('index') }}" class="btn btn-secondary">Predict Again</a>
+                     <!-- Added Consult Specialist Button -->
+                     <button type="button" class="btn btn-primary ms-2" data-bs-toggle="modal" data-bs-target="#consultModal">
+                       Consult Specialist
+                     </button>
+                 </div>
+ 
+             {% else %}
+                  <!-- Fallback if no error and no disease -->
+                  <div class="alert alert-warning" role="alert">
+                     No prediction result available. Please go back and select symptoms.
+                     <a href="{{ url_for('index') }}" class="btn btn-primary mt-2">Go Back</a>
+                 </div>
+             {% endif %}
+ 
+         </div> <!-- End Card -->
+     </div> <!-- End Container -->
+ 
+ 
+     <!-- Consultation Modal -->
+     <div class="modal fade" id="consultModal" tabindex="-1" aria-labelledby="consultModalLabel" aria-hidden="true">
+       <div class="modal-dialog modal-lg">
+         <div class="modal-content">
+           <div class="modal-header">
+             <h1 class="modal-title fs-5" id="consultModalLabel">Consultation Request</h1>
+             <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+           </div>
+           <div class="modal-body">
+             <div id="consultationMessage" class="alert d-none" role="alert"></div> <!-- For success/error messages -->
+             <form id="consultForm">
+                 <div class="mb-3">
+                     <label for="consultName" class="form-label">Full Name <span class="text-danger">*</span></label>
+                     <input type="text" class="form-control" id="consultName" required>
+                 </div>
+                  <div class="mb-3">
+                     <label for="consultEmail" class="form-label">Email Address <span class="text-danger">*</span></label>
+                     <input type="email" class="form-control" id="consultEmail" required>
+                      <div class="form-text">A confirmation will be attempted to this email.</div>
+                 </div>
+                 <div class="row">
+                     <div class="col-md-6 mb-3">
+                          <label for="consultAge" class="form-label">Age</label>
+                          <input type="number" class="form-control" id="consultAge" min="0" max="120">
+                     </div>
+                     <div class="col-md-6 mb-3">
+                         <label class="form-label">Gender</label>
+                         <div>
+                             <div class="form-check form-check-inline">
+                               <input class="form-check-input" type="radio" name="consultGender" id="genderMale" value="Male">
+                               <label class="form-check-label" for="genderMale">Male</label>
+                             </div>
+                             <div class="form-check form-check-inline">
+                               <input class="form-check-input" type="radio" name="consultGender" id="genderFemale" value="Female">
+                               <label class="form-check-label" for="genderFemale">Female</label>
+                             </div>
+                              <div class="form-check form-check-inline">
+                               <input class="form-check-input" type="radio" name="consultGender" id="genderOther" value="Other/Prefer not to say" checked>
+                               <label class="form-check-label" for="genderOther">Other</label>
+                             </div>
+                         </div>
+                     </div>
+                 </div>
+                  <div class="row">
+                      <div class="col-md-6 mb-3">
+                          <label for="consultDate" class="form-label">Preferred Date <span class="text-danger">*</span></label>
+                          <input type="date" class="form-control" id="consultDate" required>
+                      </div>
+                       <div class="col-md-6 mb-3">
+                          <label for="consultTime" class="form-label">Preferred Timings</label>
+                          <input type="text" class="form-control" id="consultTime" placeholder="e.g., Morning, Afternoon, 5-6 PM">
+                      </div>
+                  </div>
+                  <div class="mb-3">
+                     <label for="consultMode" class="form-label">Mode of Meeting <span class="text-danger">*</span></label>
+                     <select class="form-select" id="consultMode" required>
+                         <option value="" selected disabled>-- Select Mode --</option>
+                         <option value="Video Call">Video Call</option>
+                         <option value="Audio Call">Audio Call</option>
+                         <option value="In Person">In Person</option>
+                     </select>
+                  </div>
+ 
+                  <div class="mb-3 form-text small">
+                     You are requesting a consultation regarding potentially having <strong>{{ disease.title() if disease else 'the predicted condition' }}</strong> with a <strong>{{ specialist.title() if specialist else 'Specialist' }}</strong>.
+                  </div>
+                  <input type="hidden" id="consultDisease" value="{{ disease if disease else '' }}">
+                  <input type="hidden" id="consultSpecialist" value="{{ specialist if specialist else '' }}">
+ 
+             </form>
+           </div>
+           <div class="modal-footer">
+             <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+             <button type="submit" form="consultForm" class="btn btn-primary">Submit Request</button>
+           </div>
+         </div>
+       </div>
+     </div>
+     <!-- End Consultation Modal -->
+ 
+ 
+     <!-- Added jQuery and Bootstrap JS -->
+     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+     <script>
+         $(document).ready(function () {
+             const storageKey = 'healthAssistantUser'; // Login user key
+             const consultationStorageKey = 'consultationRequests'; // Key for storing requests
+ 
+             // --- Welcome Message and Logout Button Logic ---
+             const loggedInUser = localStorage.getItem(storageKey);
+             if (loggedInUser) {
+                  $('#welcomeMessage').text(`Welcome, ${loggedInUser}!`);
+                  $('#logoutButton').on('click', function() {
+                      localStorage.removeItem(storageKey);
+                      window.location.href = "/login";
+                  });
+             } else {
+                  console.error("User not logged in on results page. Redirecting.");
+                  window.location.href = "/login";
+             }
+             // --- End Welcome/Logout Logic ---
+ 
+ 
+             // --- Consultation Form Submission Logic ---
+             $('#consultForm').on('submit', function(event) {
+                 event.preventDefault(); // Stop default form submission
+ 
+                 const $messageDiv = $('#consultationMessage');
+                 $messageDiv.removeClass('alert-success alert-danger d-none alert-info').addClass('d-none'); // Reset message
+ 
+                 // 1. Get form data
+                 const formData = {
+                     name: $('#consultName').val().trim(),
+                     email: $('#consultEmail').val().trim(),
+                     age: $('#consultAge').val(),
+                     gender: $('input[name="consultGender"]:checked').val(),
+                     preferredDate: $('#consultDate').val(),
+                     preferredTimings: $('#consultTime').val().trim(),
+                     meetingMode: $('#consultMode').val(),
+                     requestTimestamp: new Date().toISOString(),
+                     predictedDisease: $('#consultDisease').val(), // Get predicted disease from hidden input
+                     consultingSpecialist: $('#consultSpecialist').val() // Get specialist from hidden input
+                 };
+ 
+                 // Basic validation check
+                 if (!formData.name || !formData.email || !formData.preferredDate || !formData.meetingMode) {
+                      $messageDiv.text('Please fill in all required fields.').removeClass('d-none').addClass('alert-danger');
+                     return;
+                 }
+ 
+                 // Show temporary "Submitting..." message
+                 $messageDiv.text('Submitting request...').removeClass('d-none alert-success alert-danger').addClass('alert-info');
+ 
+ 
+                 // 2. Store data locally (Optional)
+                 try {
+                     let requests = JSON.parse(localStorage.getItem(consultationStorageKey) || '[]');
+                     requests.push(formData);
+                     localStorage.setItem(consultationStorageKey, JSON.stringify(requests));
+                     console.log("Data saved to localStorage.");
+                 } catch (e) {
+                     console.error("Error saving to localStorage:", e);
+                     // Decide if this error should prevent email sending or just be logged
+                 }
+ 
+                 // 3. Send Email via Fetch to Backend **(UNCOMMENTED)**
+                 fetch('/send-consultation-email', { // Ensure this matches your Flask route
+                     method: 'POST',
+                     headers: {
+                         'Content-Type': 'application/json',
+                     },
+                     body: JSON.stringify(formData), // Send the form data as JSON
+                 })
+                 .then(response => {
+                     // Check if response status is ok (e.g., 200)
+                     if (!response.ok) {
+                         // Try to parse error response from server if available
+                         return response.json().then(errData => {
+                            throw new Error(errData.message || `Server responded with status: ${response.status}`);
+                         }).catch(() => {
+                             // Fallback if error response isn't JSON
+                             throw new Error(`Server responded with status: ${response.status}`);
+                         });
+                     }
+                     return response.json(); // Parse successful JSON response
+                 })
+                 .then(data => {
+                     // Handle successful response from server
+                     if (data.success) {
+                         console.log('Server confirmed email sent successfully.');
+                         $messageDiv.html(`<strong>Request Submitted!</strong><br>${data.message}`) // Use server message
+                                    .removeClass('alert-info alert-danger').addClass('alert-success');
+                         // Optionally clear form only on success
+                         $('#consultForm')[0].reset();
+                     } else {
+                         // Handle cases where server indicates failure (e.g., config error)
+                         console.error('Server reported failure:', data.message);
+                         $messageDiv.html(`<strong>Submission Error:</strong><br>${data.message}`)
+                                    .removeClass('alert-info alert-success').addClass('alert-danger');
+                     }
+                 })
+                 .catch((error) => {
+                     // Handle network errors or errors thrown from .then blocks
+                     console.error('Error sending request or processing response:', error);
+                     $messageDiv.html(`<strong>Error:</strong><br>Could not submit request. ${error.message}`)
+                                .removeClass('alert-info alert-success').addClass('alert-danger');
+                 });
+                 // --- End Fetch ---
+ 
+             }); // End form submit handler
+ 
+ 
+              // Clear message when modal is closed manually
+             $('#consultModal').on('hidden.bs.modal', function () {
+                 $('#consultationMessage').addClass('d-none');
+                 // Optionally reset form when closed, but maybe not if there was an error
+                 // $('#consultForm')[0].reset();
+             });
+ 
+         });
+     </script>
+ </body>
+ </html>

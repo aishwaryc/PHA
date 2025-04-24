@@ -1,0 +1,203 @@
+/* Import Google Font */
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: 'Inter', sans-serif;
+    background: linear-gradient(135deg, #fdf2f8, #e0f2fe);
+    color: #1e293b;
+    min-height: 100vh;
+    overflow-x: hidden;
+    transition: background 0.3s ease;
+}
+
+/* Container Glassmorphism Card */
+.container {
+    max-width: 980px;
+    margin: 60px auto;
+    padding: 60px 45px;
+    background: rgba(255, 255, 255, 0.85);
+    border-radius: 28px;
+    backdrop-filter: blur(18px);
+    box-shadow: 0 35px 70px rgba(0, 0, 0, 0.1);
+    border: 1px solid rgba(255, 255, 255, 0.4);
+    transition: all 0.3s ease-in-out;
+}
+
+/* Headings */
+h2 {
+    font-size: 34px;
+    font-weight: 700;
+    color: #0f172a;
+    margin-bottom: 32px;
+    text-align: center;
+    position: relative;
+}
+
+h2::after {
+    content: '';
+    display: block;
+    width: 70px;
+    height: 4px;
+    background: #6366f1;
+    margin: 14px auto 0;
+    border-radius: 10px;
+}
+
+h4 {
+    font-size: 24px;
+    color: #334155;
+    margin-top: 32px;
+    margin-bottom: 22px;
+    font-weight: 600;
+    border-left: 5px solid #6366f1;
+    padding-left: 14px;
+}
+
+/* Labels */
+form label {
+    font-weight: 600;
+    font-size: 16px;
+    color: #475569;
+    display: block;
+    margin-bottom: 16px;
+}
+
+/* Buttons */
+button, .btn {
+    padding: 14px 36px;
+    background: linear-gradient(to right, #6366f1, #8b5cf6);
+    border: none;
+    color: white;
+    font-size: 16px;
+    font-weight: 600;
+    border-radius: 50px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    box-shadow: 0 10px 25px rgba(99, 102, 241, 0.4);
+    display: inline-block;
+    text-align: center;
+}
+
+button:hover, .btn:hover {
+    background: linear-gradient(to right, #4f46e5, #7c3aed);
+    box-shadow: 0 14px 32px rgba(99, 102, 241, 0.6);
+    transform: translateY(-2px);
+}
+
+/* Select2 Multi Dropdown */
+.select2-container--default .select2-selection--multiple {
+    background-color: #f1f5f9;
+    border: 1px solid #cbd5e1;
+    border-radius: 18px;
+    padding: 14px;
+    min-height: 64px;
+    font-size: 16px;
+    transition: all 0.2s ease-in-out;
+}
+
+.select2-selection__choice {
+    background-color: #6366f1 !important;
+    border: none !important;
+    border-radius: 30px !important;
+    padding: 8px 18px !important;
+    margin-top: 6px !important;
+    color: white !important;
+    font-weight: 500;
+    box-shadow: 0 4px 14px rgba(99, 102, 241, 0.3);
+    transition: background 0.2s ease;
+}
+
+/* Pills to show selected symptoms */
+.selected-symptom-pill {
+    display: inline-block;
+    margin: 8px 8px 8px 0;
+    padding: 12px 24px;
+    background: #7c3aed;
+    color: white;
+    border-radius: 50px;
+    font-size: 15px;
+    font-weight: 500;
+    box-shadow: 0 5px 16px rgba(124, 58, 237, 0.4);
+    transition: transform 0.25s ease;
+}
+
+.selected-symptom-pill:hover {
+    transform: scale(1.08);
+}
+
+/* Result Section */
+.result-heading {
+    font-size: 24px;
+    font-weight: 700;
+    color: #0ea5e9;
+    margin-bottom: 20px;
+    position: relative;
+    text-align: center;
+}
+
+.result-heading::before {
+    content: '⟡';
+    color: #7c3aed;
+    font-size: 30px;
+    position: absolute;
+    left: -30px;
+    top: -6px;
+}
+
+/* Precaution List */
+ul {
+    padding-left: 26px;
+    margin-top: 16px;
+}
+
+ul li {
+    margin-bottom: 12px;
+    line-height: 1.9;
+    font-size: 15px;
+    color: #334155;
+    position: relative;
+    padding-left: 18px;
+}
+
+ul li::before {
+    content: '✓';
+    color: #10b981;
+    font-weight: bold;
+    position: absolute;
+    left: 0;
+    top: 0;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .container {
+        margin: 20px;
+        padding: 30px 24px;
+    }
+
+    h2 {
+        font-size: 26px;
+    }
+
+    button {
+        width: 100%;
+        padding: 16px;
+        font-size: 15px;
+    }
+}
+
+/* ✅ Added for larger Predicted Disease text */
+.predicted-disease {
+    font-size: 30px;
+    font-weight: 700;
+    color: #ef4444;
+    text-align: center;
+    display: block;
+    margin-top: 20px;
+}
